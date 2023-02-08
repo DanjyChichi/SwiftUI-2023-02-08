@@ -1,0 +1,6 @@
+framework module Pods_SwiftUI_CafeApp {
+  umbrella header "Pods-SwiftUI_CafeApp-umbrella.h"
+
+  export *
+  module * { export * }
+}
