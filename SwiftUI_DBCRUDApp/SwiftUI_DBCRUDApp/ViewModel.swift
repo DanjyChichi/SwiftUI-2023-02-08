@@ -2,6 +2,10 @@
 
 import Foundation
 
+//모델 : struct
+//뷰(SwiftUI) : struct
+//뷰모델(통신과 데이타 제공) : class
+
 //통신과 데이타 제공의 역할을 하는 클래스
 class ViewModel: ObservableObject {
     //포스트 데이타 배열
@@ -42,39 +46,113 @@ class ViewModel: ObservableObject {
             }
         }.resume() //URLSession
     }//func
-    //MARK: - Delete data
-        func deletePost(parameters: [String: Any]){
-            guard let url = URL(string: "\(prefixUrl)/deletePost") else {
-                print("Not found url")
+    
+    //MARK: - 포스트 삭제하기
+    func deletePost(parameters: [String: Any]) {
+        guard let url = URL(string: "\(prefixUrl)/deletePost") else {
+            print("Not Found URL!")
+            return
+        }
+        
+        //키-밸류 객체를 JSON객체로 만들어줌.
+        let data = try! JSONSerialization.data(withJSONObject: parameters)
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.httpBody = data
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        URLSession.shared.dataTask(with: request) {
+            (data, res, error) in
+            if error != nil {
+                print("error", error?.localizedDescription ?? "")
                 return
             }
-            
-            let data = try! JSONSerialization.data(withJSONObject: parameters)
-            
-            var request = URLRequest(url: url)
-            request.httpMethod = "DELETE"
-            request.httpBody = data
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            
-            URLSession.shared.dataTask(with: request) { (data, res, error) in
-                if error != nil {
-                    print("error", error?.localizedDescription ?? "")
-                    return
-                }
-                do {
-                    if let data = data {
-                        let result = try JSONDecoder().decode(DataModel.self, from: data)
-                        DispatchQueue.main.async {
-                            print( result )
-                        }
-                    }else{
-                        print("No data")
+            do {
+                if let new_data = data {
+
+                    let result = try JSONDecoder().decode(DataModel.self, from: new_data)
+                    DispatchQueue.main.async {
+                        print(result)
                     }
-                } catch let JsonError {
-                    print("fetch json error:", JsonError.localizedDescription)
+                }else{
+                    print("No data")
                 }
-                
+            } catch let JsonError {
+                print("fetch json error", JsonError.localizedDescription)
             }
-            .resume()
+        }.resume()
+    }//func
+    
+    //Mark: - create date
+    func cratePost(parameters: [String: Any]) {
+        guard let url = URL(string: "\(prefixUrl)/createPost") else {
+            print("Not Founc url")
+            return
         }
+        let data = try! JSONSerialization.data(withJSONObject: parameters)
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = data
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        URLSession.shared.dataTask(with: request) { (data, res, error) in
+            if error != nil {
+                print("error", error?.localizedDescription ?? "")
+                return
+            }
+            do {
+                if let new_data = data {
+                    let result = try JSONDecoder().decode(DataModel.self, from: new_data)
+                    DispatchQueue.main.async {
+                        print( result )
+                    }
+                }
+                else{
+                    print("No data")
+                }
+            }
+            catch let JsonError {
+                print("fetch json error:", JsonError.localizedDescription)
+            }
+        }.resume()
+    }//func
+    
+    //Mark: - update data
+    func updatePost(parameters: [String: Any]) {
+        guard let url = URL(string: "\(prefixUrl)/updatePost") else {
+            print("Not Found url")
+            return
+        }
+        let data = try! JSONSerialization.data(withJSONObject: parameters)
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.httpBody = data
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        URLSession.shared.dataTask(with: request) { (data, res, error) in
+            if error != nil {
+                print("error", error?.localizedDescription ?? "")
+                return
+            }
+            do {
+                if let new_data = data {
+                    let result = try JSONDecoder().decode(DataModel.self, from: new_data)
+                    DispatchQueue.main.async {
+                        print( result )
+                        self.fetchPosts()
+                    }
+                }
+                else{
+                    print("No data")
+                }
+            }
+            catch let JsonError {
+                print("fetch json error:", JsonError.localizedDescription)
+            }
+        }.resume()
+    }//func
+    
 }//class
